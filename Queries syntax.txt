@@ -1,0 +1,95 @@
+/* What is Top 5 media genre in this database?*/
+
+SELECT
+	g.name,
+	COUNT(t.GenreId) AS genre_count
+FROM
+	genres AS g
+INNER JOIN
+	tracks AS t
+ON
+	g.GenreId = t.GenreId
+GROUP BY
+	g.name
+ORDER BY
+	genre_count DESC
+LIMIT
+	5;
+
+
+/* How long is top 5 longest tracks in this database, who is the artist for these tracks and whether the length of each track is longer or shorter compare to average length of all tracks on database?*/
+
+WITH avg_track_length AS (
+SELECT
+    AVG(Milliseconds)
+FROM
+    tracks) 
+
+/*average of all tracks' length is 393599.21 milliseconds*/
+
+SELECT
+    a.name AS artist,
+    t.Name AS track_name,
+    t.Milliseconds AS track_length,
+    CASE WHEN t.Milliseconds > (SELECT * FROM avg_track_length) THEN 'longer'
+    ELSE 'shorter' END AS length_compare_to_avg
+FROM
+    artists AS a
+INNER JOIN
+    albums AS aa
+ON
+    a.ArtistId = aa.ArtistId
+INNER JOIN
+    tracks AS t
+ON
+    aa.AlbumId = t.AlbumId
+GROUP BY
+    a.name,
+    aa.Title,
+    t.Name
+ORDER BY
+    Milliseconds DESC
+LIMIT
+    5;
+
+/*Which top 10 tracks are being purchased most and which genre those tracks are categorized in?*/
+
+SELECT
+	t.Name AS Track_name,
+	g.Name AS Genre,
+	SUM(i.Quantity) AS Order_quantity
+FROM
+	tracks AS t
+INNER JOIN
+	invoice_items AS i
+ON
+	t.TrackId = i.TrackId
+INNER JOIN
+	genres AS g
+ON
+	t.GenreId = g.GenreId
+GROUP BY
+	t.Name
+ORDER BY
+	Order_quantity DESC
+LIMIT 
+	10;
+
+/* Which top 10 countries order most in terms of total amount a customer paid in the transaction (i.e. Invoice.Total) and also count total number of invoice orders for each country*/
+
+SELECT
+	c.Country,
+	COUNT(i.InvoiceId) AS number_of_invoices,
+	SUM(i.Total) AS total_amt_paid
+FROM
+	customers AS c
+INNER JOIN
+	invoices AS i
+ON
+	c.CustomerId = i.CustomerId
+GROUP BY
+	c.Country
+ORDER BY
+	total_amt_paid DESC
+LIMIT 10;
+
